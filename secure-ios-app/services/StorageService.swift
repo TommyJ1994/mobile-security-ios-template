@@ -16,6 +16,7 @@ protocol StorageService {
     func create(title: String, content: String)
     func edit(identifier: Int, title: String, content: String)
     func delete(identifier: Int)
+    func deleteAll()
 }
 
 class RealmStorageService: StorageService {
@@ -131,6 +132,19 @@ class RealmStorageService: StorageService {
         // delete the note
         try! realm.write {
             realm.delete(noteToDelete)
+        }
+    }
+    
+    /**
+     - Delete all stored entitities
+     */
+    func deleteAll() {
+        
+        let notes = realm.objects(Note.self)
+        
+        // delete all the notes
+        try! realm.write {
+            realm.delete(notes)
         }
     }
     

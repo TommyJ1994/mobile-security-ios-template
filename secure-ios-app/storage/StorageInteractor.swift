@@ -76,4 +76,13 @@ class StorageInteractorImpl: StorageInteractor {
     func delete(identifier: Int) {
         self.storageService.delete(identifier: identifier)
     }
+    
+    /*
+     - Delete a note using the storage service
+     
+     - Parameter identifier: the identifier of the note to delete
+     */
+    func deleteAll() {
+        self.storageService.deleteAll()
+    }
 }

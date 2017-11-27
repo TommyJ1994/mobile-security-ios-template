@@ -1,5 +1,6 @@
 PODS:
   - AppAuth (0.91.0)
+  - Floaty (4.0.0)
   - Realm (3.0.2):
     - Realm/Headers (= 3.0.2)
   - Realm/Headers (3.0.2)
@@ -10,6 +11,7 @@ PODS:
 
 DEPENDENCIES:
   - AppAuth
+  - Floaty (~> 4.0.0)
   - RealmSwift
   - SCLAlertView (from `https://github.com/vikmeup/SCLAlertView-Swift.git`, branch `master`)
   - SwiftKeychainWrapper
@@ -26,11 +28,12 @@ CHECKOUT OPTIONS:
 
 SPEC CHECKSUMS:
   AppAuth: 3e0dc9c00ef333dc62064e4830aa89b597ae8d2f
+  Floaty: 4f88811bbf08521807f42355db6a9c0db85d5d78
   Realm: 6f23fd1f178a09342eac21bfa7c2bf4312a7a180
   RealmSwift: 695393add1b8f9d5fa75dd16e6355cf3935f71e2
   SCLAlertView: 8a14ffc40590c619e183eed2298b854385f30be1
   SwiftKeychainWrapper: 38952a3636320ae61bad3513cadd870929de7a4a
 
-PODFILE CHECKSUM: 4a4b81104d1c71e039351b3334c3740611c91c17
+PODFILE CHECKSUM: ad9318ef864071d9b90ec6ad27ce52c1feccd76d
 
 COCOAPODS: 1.3.1

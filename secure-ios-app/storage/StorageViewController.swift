@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 import SCLAlertView
+import Floaty
 
 protocol StorageListener {
     func list() -> [Note]
@@ -16,6 +17,7 @@ protocol StorageListener {
     func create(title: String, content: String)
     func edit(identifier: Int, title: String, content: String)
     func delete(identifier: Int)
+    func deleteAll()
 }
 
 /* The view controller for the storage view. */
@@ -27,6 +29,8 @@ class StorageViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.renderActionButton()
         self.loadNotes()
     }
     
@@ -36,11 +40,38 @@ class StorageViewController: UITableViewController {
     }
     
     /**
-     - Display a modal to create a note
-     
-     - Parameter sender: the sender button linked to this function
+     - Render the action button in the view with the create/delete all actions
      */
-    @IBAction func onCreateTapped(_ sender: UIBarButtonItem) {
+    func renderActionButton() {
+        let floaty = Floaty(frame: CGRect(x: 0, y: 0, width: 56, height: 56))
+        floaty.sticky = true
+        floaty.buttonColor = UIColor.white
+        
+        // create note action handler
+        floaty.addItem("New Note", icon: UIImage(named: "ic_note")!, handler: { item in
+            self.showCreateModal()
+            floaty.close()
+        })
+        
+        // delete all notes handler
+        floaty.addItem("Delete All", icon: UIImage(named: "ic_delete")!, handler: { item in
+            if self.notes.isEmpty {
+                self.showErrorAlert(title: "No Notes", message: "You don't have any Notes to delete!")
+            } else {
+                self.showDeleteAllModal()
+            }
+            floaty.close()
+        })
+        self.view.addSubview(floaty)
+        
+        // don't show empty table items
+        self.tableView.tableFooterView = UIView()
+    }
+    
+    /**
+     - Display a modal to create a note
+     */
+    func showCreateModal() {
         
         // create the view
         let appearance = SCLAlertView.SCLAppearance(
@@ -132,6 +163,32 @@ class StorageViewController: UITableViewController {
     }
     
     /**
+     - Display a modal to delete all notes
+    */
+    func showDeleteAllModal() {
+        
+        // create the view
+        let appearance = SCLAlertView.SCLAppearance(
+            showCloseButton: false
+        )
+        let alert = SCLAlertView(appearance: appearance)
+        
+        // define the close action
+        alert.addButton("Close") {
+            let alertViewResponder: SCLAlertViewResponder = SCLAlertView().showWarning("", subTitle: "")
+            alertViewResponder.close()
+        }
+        
+        // define the delete all action
+        alert.addButton("Confirm Delete") {
+            self.deleteAllNotes()
+        }
+        
+        // show the modal
+        alert.showWarning("Delete All Notes?", subTitle: "Are you sure?")
+    }
+    
+    /**
      - Function to load/re-load notes to display in the UI
      */
     func loadNotes() {
@@ -183,6 +240,15 @@ class StorageViewController: UITableViewController {
         self.storageListener?.delete(identifier: identifier)
         self.loadNotes()
         self.showSuccessAlert(title: title, message: "Note Succesfully Deleted")
+    }
+    
+    /**
+     - Delete all notes using the storage service
+     */
+    func deleteAllNotes() {
+        self.storageListener?.deleteAll()
+        self.loadNotes()
+        self.showSuccessAlert(title: "Success", message: "Notes Succesfully Deleted")
     }
     
     /**
