@@ -8,6 +8,8 @@ target 'secure-ios-app' do
   # Pods for secure-ios-app
   pod 'AppAuth'
   pod 'SwiftKeychainWrapper'
+  pod 'RealmSwift'
+  pod 'SCLAlertView', :git => 'https://github.com/vikmeup/SCLAlertView-Swift.git', :branch => 'master'
   
   target 'secure-ios-appTests' do
     inherit! :search_paths
