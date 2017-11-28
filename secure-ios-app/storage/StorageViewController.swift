@@ -20,6 +20,11 @@ protocol StorageListener {
     func deleteAll()
 }
 
+/* The class for the table view cells. */
+class NoteTableViewCell: UITableViewCell {
+    @IBOutlet var title: UILabel!
+}
+
 /* The view controller for the storage view. */
 class StorageViewController: UITableViewController {
     
@@ -192,9 +197,15 @@ class StorageViewController: UITableViewController {
      - Function to load/re-load notes to display in the UI
      */
     func loadNotes() {
-        let storedNotes = self.storageListener?.list()
-        self.notes = storedNotes!
-        self.tableView.reloadData()
+        DispatchQueue.global(qos: .background).sync {
+            DispatchQueue(label: "background").sync {
+                let storedNotes = self.storageListener?.list()
+                self.notes = storedNotes!
+            }
+            DispatchQueue(label: "ui").sync {
+                self.tableView.reloadData()
+            }
+        }
     }
     
     /**
@@ -203,8 +214,13 @@ class StorageViewController: UITableViewController {
      - Parameter identifier: the identifier of the note to get
      */
     func readNote(identifier: Int) -> Note {
-        let note = self.storageListener?.read(identifier: identifier)
-        return note!
+        var note = Note()
+        DispatchQueue.global(qos: .background).sync {
+            DispatchQueue(label: "background").sync {
+                note = (self.storageListener?.read(identifier: identifier))!
+            }
+        }
+        return note
     }
     
     /**
@@ -214,8 +230,14 @@ class StorageViewController: UITableViewController {
      - Parameter content: the content of the note
      */
     func createNote(title: String, content: String) {
-        self.storageListener?.create(title: title, content: content)
-        self.loadNotes()
+        DispatchQueue.global(qos: .background).sync {
+            DispatchQueue(label: "background").sync {
+                    self.storageListener?.create(title: title, content: content)
+            }
+            DispatchQueue(label: "ui").sync {
+                self.loadNotes()
+            }
+        }
     }
     
     /**
@@ -226,9 +248,15 @@ class StorageViewController: UITableViewController {
      - Parameter content: the content of the note
      */
     func editNote(identifier: Int, title: String, content: String) {
-        self.storageListener?.edit(identifier: identifier, title: title, content: content)
-        self.loadNotes()
-        self.showSuccessAlert(title: title, message: "Note Successfully Updated")
+        DispatchQueue.global(qos: .background).sync {
+            DispatchQueue(label: "background").sync {
+                self.storageListener?.edit(identifier: identifier, title: title, content: content)
+            }
+            DispatchQueue(label: "ui").sync {
+                self.loadNotes()
+                self.showSuccessAlert(title: title, message: "Note Successfully Updated")
+            }
+        }
     }
     
     /**
@@ -237,18 +265,30 @@ class StorageViewController: UITableViewController {
      - Parameter identifier: the identifier of the note to delete
      */
     func deleteNote(title: String, identifier: Int) {
-        self.storageListener?.delete(identifier: identifier)
-        self.loadNotes()
-        self.showSuccessAlert(title: title, message: "Note Succesfully Deleted")
+        DispatchQueue.global(qos: .background).sync {
+            DispatchQueue(label: "background").sync {
+                self.storageListener?.delete(identifier: identifier)
+            }
+            DispatchQueue(label: "ui").sync {
+                self.loadNotes()
+                self.showSuccessAlert(title: title, message: "Note Succesfully Deleted")
+            }
+        }
     }
     
     /**
      - Delete all notes using the storage service
      */
     func deleteAllNotes() {
-        self.storageListener?.deleteAll()
-        self.loadNotes()
-        self.showSuccessAlert(title: "Success", message: "Notes Succesfully Deleted")
+        DispatchQueue.global(qos: .background).sync {
+            DispatchQueue(label: "background").sync {
+                self.storageListener?.deleteAll()
+            }
+            DispatchQueue(label: "ui").sync {
+                self.loadNotes()
+                self.showSuccessAlert(title: "Success", message: "Notes Succesfully Deleted")
+            }
+        }
     }
     
     /**

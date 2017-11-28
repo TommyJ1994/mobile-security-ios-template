@@ -16,7 +16,6 @@
 		AB3E12041FC3307400B7302C /* StorageInteractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3E12031FC3307400B7302C /* StorageInteractor.swift */; };
 		AB3E12061FC331CB00B7302C /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3E12051FC331CB00B7302C /* StorageService.swift */; };
 		AB3E12081FC3376500B7302C /* StorageBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3E12071FC3376500B7302C /* StorageBuilder.swift */; };
-		AB3E120A1FC589EB00B7302C /* NoteTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3E12091FC589EB00B7302C /* NoteTableViewCell.swift */; };
 		B302EA771FACD7EE00EAD340 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B302EA761FACD7EE00EAD340 /* HomeViewController.swift */; };
 		B30BEBA11FB20F3F0008A171 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30BEBA01FB20F3F0008A171 /* AppConfiguration.swift */; };
 		B30BEBA61FB229C40008A171 /* AppConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = B30BEBA51FB229C40008A171 /* AppConfig.plist */; };
@@ -76,7 +75,6 @@
 		AB3E12031FC3307400B7302C /* StorageInteractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageInteractor.swift; sourceTree = "<group>"; };
 		AB3E12051FC331CB00B7302C /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
 		AB3E12071FC3376500B7302C /* StorageBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageBuilder.swift; sourceTree = "<group>"; };
-		AB3E12091FC589EB00B7302C /* NoteTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteTableViewCell.swift; sourceTree = "<group>"; };
 		AD54EEC2CFFB1CC5C561CFAC /* Pods-secure-ios-app.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-secure-ios-app.debug.xcconfig"; path = "Pods/Target Support Files/Pods-secure-ios-app/Pods-secure-ios-app.debug.xcconfig"; sourceTree = "<group>"; };
 		B302EA761FACD7EE00EAD340 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		B30BEBA01FB20F3F0008A171 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
@@ -163,7 +161,6 @@
 				AB3E12011FC324D000B7302C /* StorageViewController.swift */,
 				AB3E12031FC3307400B7302C /* StorageInteractor.swift */,
 				AB3E12071FC3376500B7302C /* StorageBuilder.swift */,
-				AB3E12091FC589EB00B7302C /* NoteTableViewCell.swift */,
 			);
 			path = storage;
 			sourceTree = "<group>";
@@ -639,7 +636,6 @@
 				AB3E12061FC331CB00B7302C /* StorageService.swift in Sources */,
 				AB3E12041FC3307400B7302C /* StorageInteractor.swift in Sources */,
 				B30BEBA11FB20F3F0008A171 /* AppConfiguration.swift in Sources */,
-				AB3E120A1FC589EB00B7302C /* NoteTableViewCell.swift in Sources */,
 				B342DF381FB0CA9900BBA05B /* AuthenticationViewController.swift in Sources */,
 				B39FDB0B1FB2012F00C1EC0F /* MenuViewController.swift in Sources */,
 				B30BEBBC1FB367C80008A171 /* AuthenticationRouter.swift in Sources */,

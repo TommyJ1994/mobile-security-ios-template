@@ -72,8 +72,8 @@ class RealmStorageService: StorageService {
         note.createdAt = createdAt
         note.storageProvider = "Realm"
         
-        // add the note to the db
-        try! realm.safeWrite {
+        // create the note in the db
+        try! self.realm.safeWrite {
             self.realm.add(note)
         }
     }
@@ -85,8 +85,8 @@ class RealmStorageService: StorageService {
      
      - Returns: true/false based on if a note with the same identifier already exists in the db
      */
-    func isIdentifierUnique(identifier: Int) -> Bool {
-        let identifiers = realm.objects(Note.self).filter("id = \(identifier)")
+    fileprivate func isIdentifierUnique(identifier: Int) -> Bool {
+        let identifiers = self.realm.objects(Note.self).filter("id = \(identifier)")
         return identifiers.count == 0
     }
     
@@ -111,11 +111,11 @@ class RealmStorageService: StorageService {
      - Parameter content: The content of the note
      */
     func edit(identifier: Int, title: String, content: String) {
-        let notes = realm.objects(Note.self).filter("id = \(identifier)")
+        let notes = self.realm.objects(Note.self).filter("id = \(identifier)")
         let note = notes.first
 
         // update the note with the given id
-        try! realm.write {
+        try! self.realm.write {
             note?.title = title
             note?.content = content
         }
@@ -130,8 +130,8 @@ class RealmStorageService: StorageService {
         let noteToDelete = self.realm.objects(Note.self).filter("id = \(identifier)")
         
         // delete the note
-        try! realm.write {
-            realm.delete(noteToDelete)
+        try! self.realm.write {
+            self.realm.delete(noteToDelete)
         }
     }
     
@@ -143,8 +143,8 @@ class RealmStorageService: StorageService {
         let notes = realm.objects(Note.self)
         
         // delete all the notes
-        try! realm.write {
-            realm.delete(notes)
+        try! self.realm.write {
+            self.realm.delete(notes)
         }
     }
     
@@ -154,7 +154,8 @@ class RealmStorageService: StorageService {
      - Returns: A new Int with a random number.
     */
     func generateId() -> Int {
-        return Int(arc4random_uniform(65))
+        let randomNumberSize = 1000000
+        return Int(arc4random_uniform(UInt32(randomNumberSize)))
     }
     
     /**
@@ -174,7 +175,8 @@ class RealmStorageService: StorageService {
      */
         class func generateEncryptionKey() -> Data {
         let byteLength = 64
-        let bytes = [UInt32](repeating: 0, count: byteLength).map { _ in arc4random_uniform(UInt32(byteLength)) }
+        let randomNumberSize = 1000000
+        let bytes = [UInt32](repeating: 0, count: byteLength).map { _ in arc4random_uniform(UInt32(randomNumberSize)) }
         let data = Data(bytes: bytes, count: byteLength)
         return data
     }
