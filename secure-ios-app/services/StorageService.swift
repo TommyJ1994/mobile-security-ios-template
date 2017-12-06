@@ -11,12 +11,12 @@ import RealmSwift
 import SwiftKeychainWrapper
 
 protocol StorageService {
-    func list() -> [Note]
-    func read(identifier: Int) -> Note
-    func create(title: String, content: String)
-    func edit(identifier: Int, title: String, content: String)
-    func delete(identifier: Int)
-    func deleteAll()
+    func list(onComplete: @escaping (Error?, [Note]?) -> Void)
+    func read(identifier: Int, onComplete: @escaping (Error?, Note?) -> Void)
+    func create(title: String, content: String, onComplete: @escaping (Error?, Note?) -> Void)
+    func edit(identifier: Int, title: String, content: String, onComplete: @escaping (Error?, Note?) -> Void)
+    func delete(identifier: Int, onComplete: @escaping (Error?, Note?) -> Void)
+    func deleteAll(onComplete: @escaping (Error?, Bool?) -> Void)
 }
 
 class RealmStorageService: StorageService {
@@ -41,24 +41,37 @@ class RealmStorageService: StorageService {
     /**
      - List the stored entities from the realm db
      
-     - Returns: an array of Notes
+     - Parameter onComplete - a closure called after retrieval
      */
-    func list() -> [Note] {
-        let notes = self.realm.objects(Note.self)
-        let notesArray = notes.toArray()
-        return notesArray
+    func list(onComplete: @escaping (Error?, [Note]?) -> Void) {
+        do {
+            // create a new thread confined realm
+            let realm = try Realm(configuration: Realm.Configuration(encryptionKey: self.encryptionKey))
+            
+            // synchronization of Realm instance to the latest version on the background thread
+            realm.refresh()
+            
+            // retieve and convert the notes to an array format
+            let notes = realm.objects(Note.self)
+            let notesArray = notes.toArray()
+            
+            onComplete(nil, notesArray)
+        } catch {
+            onComplete(error, nil)
+        }
     }
-    
+
     /**
      - Create the stored entity
      
      - Paramater title: the title of the note
      - Paramater content: the content of the note
+     - Parameter onComplete - a closure called after creation
      */
-    func create(title: String, content: String) {
+    func create(title: String, content: String, onComplete: @escaping (Error?, Note?) -> Void) {
         var id = generateId()
         let createdAt = getDate()
-        
+                
         // ensure the ID is unique
         while !isIdentifierUnique(identifier: id) {
             id = generateId()
@@ -72,9 +85,122 @@ class RealmStorageService: StorageService {
         note.createdAt = createdAt
         note.storageProvider = "Realm"
         
-        // create the note in the db
-        try! self.realm.safeWrite {
-            self.realm.add(note)
+        DispatchQueue.global(qos: .background).async {
+            // create the note in the db
+            do {
+                // create a new thread confined realm
+                let realm = try Realm(configuration: Realm.Configuration(encryptionKey: self.encryptionKey))
+                try realm.safeWrite {
+                    realm.add(note)
+                    
+                onComplete(nil, note)
+                }
+            } catch {
+                onComplete(error, nil)
+            }
+        }
+    }
+    
+    /**
+     - Read the stored entity
+     
+     - Parameter identifier: The identifier of the note
+     - Parameter onComplete - a closure called after retrieval
+     */
+    func read(identifier: Int, onComplete: @escaping (Error?, Note?) -> Void) {
+        do {
+            // create a new thread confined realm
+            let realm = try Realm(configuration: Realm.Configuration(encryptionKey: self.encryptionKey))
+            
+            // retrieve the note
+            let noteResult = realm.objects(Note.self).filter("id = \(identifier)")
+            let note = noteResult.first
+            
+            onComplete(nil, note)
+        } catch {
+            onComplete(error, nil)
+        }
+    }
+    
+    /**
+     - Edit the stored entity
+     
+     - Parameter identifier: The identifier of the note
+     - Parameter title: The title of the note
+     - Parameter content: The content of the note
+     - Parameter onComplete - a closure called after editing
+     */
+    func edit(identifier: Int, title: String, content: String, onComplete: @escaping (Error?, Note?) -> Void) {
+        DispatchQueue.global(qos: .background).async {
+            do {
+                // create a new thread confined realm
+                let realm = try Realm(configuration: Realm.Configuration(encryptionKey: self.encryptionKey))
+                
+                // get the existing note to update
+                let notes = realm.objects(Note.self).filter("id = \(identifier)")
+                let note = notes.first
+                
+                // update the note with the given id
+                try realm.write {
+                    note?.title = title
+                    note?.content = content
+                }
+                onComplete(nil, note)
+            } catch {
+                onComplete(error, nil)
+            }
+        }
+    }
+    
+    /**
+     - Delete the stored entity
+     
+     - Parameter identifier: The identifier of the note
+     - Parameter onComplete - a closure called after deletion
+     */
+    func delete(identifier: Int, onComplete: @escaping (Error?, Note?) -> Void) {
+        DispatchQueue.global(qos: .background).async {
+            do {
+                // create a new thread confined realm
+                let realm = try Realm(configuration: Realm.Configuration(encryptionKey: self.encryptionKey))
+                
+                // get the note to delete
+                let noteToDeleteResult = realm.objects(Note.self).filter("id = \(identifier)")
+                let note = noteToDeleteResult.first
+                
+                // delete the note
+                try realm.write {
+                    realm.delete((note)!)
+                }
+                onComplete(nil, note)
+            } catch {
+                onComplete(error, nil)
+            }
+            
+        }
+    }
+    
+    /**
+     - Delete all stored entitities
+     
+     - Parameter onComplete - a closure called after deletion
+     */
+    func deleteAll(onComplete: @escaping (Error?, Bool?) -> Void) {
+        DispatchQueue.global(qos: .background).async {
+            do {
+                // create a new thread confined realm
+                let realm = try Realm(configuration: Realm.Configuration(encryptionKey: self.encryptionKey))
+        
+                let notes = realm.objects(Note.self)
+                
+                // delete all the notes
+                try realm.write {
+                    realm.delete(notes)
+                }
+                onComplete(nil, true)
+            } catch {
+                onComplete(error, nil)
+            }
         }
     }
     
@@ -88,64 +214,6 @@ class RealmStorageService: StorageService {
     fileprivate func isIdentifierUnique(identifier: Int) -> Bool {
         let identifiers = self.realm.objects(Note.self).filter("id = \(identifier)")
         return identifiers.count == 0
-    }
-    
-    /**
-     - Read the stored entity
-     
-     - Parameter identifier: The identifier of the note
-     
-     - Returns: a note object
-     */
-    func read(identifier: Int) -> Note {
-        let noteResult = self.realm.objects(Note.self).filter("id = \(identifier)")
-        let note = noteResult.first
-        return note!
-    }
-    
-    /**
-     - Edit the stored entity
-     
-     - Parameter identifier: The identifier of the note
-     - Parameter title: The title of the note
-     - Parameter content: The content of the note
-     */
-    func edit(identifier: Int, title: String, content: String) {
-        let notes = self.realm.objects(Note.self).filter("id = \(identifier)")
-        let note = notes.first
-
-        // update the note with the given id
-        try! self.realm.write {
-            note?.title = title
-            note?.content = content
-        }
-    }
-    
-    /**
-     - Delete the stored entity
-     
-     - Parameter identifier: The identifier of the note
-     */
-    func delete(identifier: Int) {
-        let noteToDelete = self.realm.objects(Note.self).filter("id = \(identifier)")
-        
-        // delete the note
-        try! self.realm.write {
-            self.realm.delete(noteToDelete)
-        }
-    }
-    
-    /**
-     - Delete all stored entitities
-     */
-    func deleteAll() {
-        
-        let notes = realm.objects(Note.self)
-        
-        // delete all the notes
-        try! self.realm.write {
-            self.realm.delete(notes)
-        }
     }
     
     /**

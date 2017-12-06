@@ -30,21 +30,19 @@ class StorageInteractorImpl: StorageInteractor {
     /*
      - List notes stored in storage
      
-     - Returns: an array of Note objects from the storage service
+     - Parameter onComplete - a closure called after retrieval
      */
-    func list() -> [Note] {
-        return self.storageService.list()
+    func list(onComplete: @escaping (Error?, [Note]?) -> Void) {
+        self.storageService.list(onComplete: onComplete)
     }
     
     /*
      - Read an individual note using the storage service
      
-     - Parameter identifier: the identifier of the note to retrieve
-     
-     - Returns: a single note
+     - Parameter onComplete - a closure called after retrieval
      */
-    func read(identifier: Int) -> Note {
-        return self.storageService.read(identifier: identifier)
+    func read(identifier: Int, onComplete: @escaping (Error?, Note?) -> Void) {
+        self.storageService.read(identifier: identifier, onComplete: onComplete)
     }
     
     /*
@@ -52,9 +50,10 @@ class StorageInteractorImpl: StorageInteractor {
      
      - Parameter title: the title of the note
      - Parameter content: the content of the note
+     - Parameter onComplete - a closure called after creation
     */
-    func create(title: String, content: String) {
-       self.storageService.create(title: title, content: content)
+    func create(title: String, content: String, onComplete: @escaping (Error?, Note?) -> Void) {
+        self.storageService.create(title: title, content: content, onComplete: onComplete)
     }
     
     /*
@@ -63,26 +62,29 @@ class StorageInteractorImpl: StorageInteractor {
      - Parameter identifier: the identifier of the note to update
      - Parameter title: the new title of the note
      - Parameter content: the new content of the note
+     - Parameter onComplete - a closure called after updating
      */
-    func edit(identifier: Int, title: String, content: String) {
-        self.storageService.edit(identifier: identifier, title: title, content: content)
+    func edit(identifier: Int, title: String, content: String, onComplete: @escaping (Error?, Note?) -> Void) {
+        self.storageService.edit(identifier: identifier, title: title, content: content, onComplete: onComplete)
     }
     
     /*
      - Delete a note using the storage service
      
      - Parameter identifier: the identifier of the note to delete
+     - Parameter onComplete - a closure called after deletion
      */
-    func delete(identifier: Int) {
-        self.storageService.delete(identifier: identifier)
+    func delete(identifier: Int, onComplete: @escaping (Error?, Note?) -> Void) {
+        self.storageService.delete(identifier: identifier, onComplete: onComplete)
     }
     
     /*
      - Delete a note using the storage service
      
      - Parameter identifier: the identifier of the note to delete
+     - Parameter onComplete - a closure called after deletion
      */
-    func deleteAll() {
-        self.storageService.deleteAll()
+    func deleteAll(onComplete: @escaping (Error?, Bool?) -> Void) {
+        self.storageService.deleteAll(onComplete: onComplete)
     }
 }

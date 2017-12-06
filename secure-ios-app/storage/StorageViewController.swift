@@ -10,14 +10,15 @@ import Foundation
 import UIKit
 import SCLAlertView
 import Floaty
+import RealmSwift
 
 protocol StorageListener {
-    func list() -> [Note]
-    func read(identifier: Int) -> Note
-    func create(title: String, content: String)
-    func edit(identifier: Int, title: String, content: String)
-    func delete(identifier: Int)
-    func deleteAll()
+    func list(onComplete: @escaping (Error?, [Note]?) -> Void)
+    func read(identifier: Int, onComplete: @escaping (Error?, Note?) -> Void)
+    func create(title: String, content: String, onComplete: @escaping (Error?, Note?) -> Void)
+    func edit(identifier: Int, title: String, content: String, onComplete: @escaping (Error?, Note?) -> Void)
+    func delete(identifier: Int, onComplete: @escaping (Error?, Note?) -> Void)
+    func deleteAll(onComplete: @escaping (Error?, Bool?) -> Void)
 }
 
 /* The class for the table view cells. */
@@ -123,9 +124,9 @@ class StorageViewController: UITableViewController {
         
         // prefill the text fields with the current note title/content
         let title = alert.addTextField("Enter your Title")
-        title.text = note.title
+        title.text = note?.title
         let content = alert.addTextView()
-        content.text = note.content
+        content.text = note?.content
         
         // define the close action
         alert.addButton("Close") {
@@ -164,7 +165,7 @@ class StorageViewController: UITableViewController {
         }
         
         // show the modal
-        alert.showInfo(note.title, subTitle: note.content)
+        alert.showInfo((note?.title)!, subTitle: (note?.content)!)
     }
     
     /**
@@ -197,13 +198,13 @@ class StorageViewController: UITableViewController {
      - Function to load/re-load notes to display in the UI
      */
     func loadNotes() {
-        DispatchQueue.global(qos: .background).sync {
-            DispatchQueue(label: "background").sync {
-                let storedNotes = self.storageListener?.list()
-                self.notes = storedNotes!
-            }
-            DispatchQueue(label: "ui").sync {
+        self.storageListener?.list() {
+            error, notes in
+            if(notes != nil) {
+                self.notes = notes!
                 self.tableView.reloadData()
+            } else {
+                self.showErrorAlert(title: "Unable to Retrieve Notes", message: "\(error?.localizedDescription ?? "Realm Read Error")")
             }
         }
     }
@@ -213,14 +214,17 @@ class StorageViewController: UITableViewController {
      
      - Parameter identifier: the identifier of the note to get
      */
-    func readNote(identifier: Int) -> Note {
-        var note = Note()
-        DispatchQueue.global(qos: .background).sync {
-            DispatchQueue(label: "background").sync {
-                note = (self.storageListener?.read(identifier: identifier))!
+    func readNote(identifier: Int) -> Note? {
+        var readNote = Note()
+        self.storageListener?.read(identifier: identifier) {
+            error, note in
+            if(note != nil) {
+                readNote = note!
+            } else {
+                self.showErrorAlert(title: "Unable to Retrieve Note", message: "\(error?.localizedDescription ?? "Realm Read Error")")
             }
         }
-        return note
+        return readNote
     }
     
     /**
@@ -230,12 +234,14 @@ class StorageViewController: UITableViewController {
      - Parameter content: the content of the note
      */
     func createNote(title: String, content: String) {
-        DispatchQueue.global(qos: .background).sync {
-            DispatchQueue(label: "background").sync {
-                    self.storageListener?.create(title: title, content: content)
-            }
-            DispatchQueue(label: "ui").sync {
-                self.loadNotes()
+        self.storageListener?.create(title: title, content: content) {
+            error, note in
+            DispatchQueue.main.async() {
+                if(note != nil) {
+                    self.loadNotes()
+                } else {
+                    self.showErrorAlert(title: "Unable to Create Note", message: "\(error?.localizedDescription ?? "Realm Create Error")")
+                }
             }
         }
     }
@@ -248,13 +254,14 @@ class StorageViewController: UITableViewController {
      - Parameter content: the content of the note
      */
     func editNote(identifier: Int, title: String, content: String) {
-        DispatchQueue.global(qos: .background).sync {
-            DispatchQueue(label: "background").sync {
-                self.storageListener?.edit(identifier: identifier, title: title, content: content)
-            }
-            DispatchQueue(label: "ui").sync {
-                self.loadNotes()
-                self.showSuccessAlert(title: title, message: "Note Successfully Updated")
+        self.storageListener?.edit(identifier: identifier, title: title, content: content) {
+            error, note in
+            DispatchQueue.main.async() {
+                if(note != nil) {
+                    self.loadNotes()
+                } else {
+                    self.showErrorAlert(title: "Unable to Update Note", message: "\(error?.localizedDescription ?? "Realm Update Error")")
+                }
             }
         }
     }
@@ -265,13 +272,15 @@ class StorageViewController: UITableViewController {
      - Parameter identifier: the identifier of the note to delete
      */
     func deleteNote(title: String, identifier: Int) {
-        DispatchQueue.global(qos: .background).sync {
-            DispatchQueue(label: "background").sync {
-                self.storageListener?.delete(identifier: identifier)
-            }
-            DispatchQueue(label: "ui").sync {
-                self.loadNotes()
-                self.showSuccessAlert(title: title, message: "Note Succesfully Deleted")
+
+        self.storageListener?.delete(identifier: identifier) {
+            error, note in
+            DispatchQueue.main.async() {
+                if(note != nil) {
+                    self.loadNotes()
+                } else {
+                    self.showErrorAlert(title: "Unable to Delete Note", message: "\(error?.localizedDescription ?? "Realm Delete Error")")
+                }
             }
         }
     }
@@ -280,13 +289,15 @@ class StorageViewController: UITableViewController {
      - Delete all notes using the storage service
      */
     func deleteAllNotes() {
-        DispatchQueue.global(qos: .background).sync {
-            DispatchQueue(label: "background").sync {
-                self.storageListener?.deleteAll()
-            }
-            DispatchQueue(label: "ui").sync {
-                self.loadNotes()
-                self.showSuccessAlert(title: "Success", message: "Notes Succesfully Deleted")
+        self.storageListener?.deleteAll() {
+            error, success in
+            DispatchQueue.main.async() {
+                if(success == true) {
+                    self.loadNotes()
+                    self.showSuccessAlert(title: "Success", message: "Notes Succesfully Deleted")
+                } else {
+                    self.showErrorAlert(title: "Unable to Delete Notes", message: "\(error?.localizedDescription ?? "Realm Delete Error")")
+                }
             }
         }
     }
