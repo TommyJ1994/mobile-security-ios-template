@@ -21,7 +21,7 @@ protocol AuthenticationService {
 }
 
 class AppAuthAuthenticationService: AuthenticationService {
-    let REDIRECT_URL = URL(string:"com.feedhenry.securenativeandroidtemplate:/callback")
+    let REDIRECT_URL = URL(string:"com.redhat.secure-ios-app.sso2:/callback")
     let KC_AUTH_STATE_KEY = "auth-state"
     
     let authServerConfiguration: AuthServerConfiguration
@@ -48,8 +48,10 @@ class AppAuthAuthenticationService: AuthenticationService {
         
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         appDelegate.authService = self;
+        let externalUserAgent = OIDExternalUserAgentIOSCustomBrowser.customBrowserSafari();
+
         //this will automatically exchange the token to get the user info
-        self.currentAuthorisationFlow = OIDAuthState.authState(byPresenting: oidAuthRequest, presenting: viewController) {
+        self.currentAuthorisationFlow = OIDAuthState.authState(byPresenting: oidAuthRequest, externalUserAgent: externalUserAgent) {
             authState,error in
             if authState != nil && authState?.authorizationError == nil {
                 self.authSuccess(authState: authState!)

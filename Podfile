@@ -6,7 +6,7 @@ target 'secure-ios-app' do
   use_frameworks!
 
   # Pods for secure-ios-app
-  pod 'AppAuth'
+  pod 'AppAuth', :git => 'https://github.com/openid/AppAuth-iOS.git', :branch => 'master'
   pod 'SwiftKeychainWrapper'
   pod 'Alamofire', '~> 4.5'
   pod 'NotificationBannerSwift'
